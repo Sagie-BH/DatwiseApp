@@ -1,20 +1,38 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import React from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator, NativeStackScreenProps } from '@react-navigation/native-stack';
+import LoginScreen from './src/screens/LoginScreen/LoginScreen';
+import HomeScreen from './src/screens/HomeScreen/HomeScreen';
+import { RootStackParamList } from './src/types/navigationTypes/types';
+import { AuthProvider, useAuth } from './src/context/AuthContext/AuthContext';
 
-export default function App() {
+// Define your stack navigator
+const Stack = createNativeStackNavigator<RootStackParamList>();
+
+
+const App: React.FC = () => {
   return (
-    <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <NavigationContainer>
+      <AuthProvider>
+        <AuthNavigation />
+      </AuthProvider>
+    </NavigationContainer>
   );
-}
+};
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+const AuthNavigation: React.FC = () => {
+  const { isAuthenticated } = useAuth();
+
+  return (
+    <Stack.Navigator>
+      {isAuthenticated ? (
+        <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
+      ) : (
+        // User is not authenticated, show the login screen
+        <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
+      )}
+    </Stack.Navigator>
+  );
+};
+
+export default App;
