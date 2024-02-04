@@ -1,14 +1,20 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import * as SecureStore from 'expo-secure-store';
 import { AppState, AppStateStatus } from 'react-native';
+import * as LocalAuthentication from 'expo-local-authentication';
 
 interface AuthContextType {
-    login: (credentials: CredentialsType, method: LoginMethod) => Promise<void>;
+    login: (credentials: CredentialsType, method: LoginMethod) => Promise<boolean>;
     logout: () => Promise<void>;
     isAuthenticated: boolean;
     isFirstLogin: boolean | null;
     preferredLoginMethod: LoginMethod;
+    isBiometricAble: boolean;
+    isBiometricSetUp: boolean;
+    authenticateBiometric: () => Promise<boolean>;
+    isBiometricEnable: boolean;
 }
+
 
 interface AuthProviderProps {
     children: ReactNode;
@@ -33,20 +39,47 @@ export const useAuth = (): AuthContextType => {
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
     const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+    const [isBiometricSetUp, setIsBiometricSetUp] = useState<boolean>(false);
+    const [isBiometricAble, setIsBiometricAble] = useState<boolean>(false);
     const [isFirstLogin, setIsFirstLogin] = useState<boolean | null>(null);
     const [preferredLoginMethod, setPreferredLoginMethod] = useState<LoginMethod>('credentials');
+    const [isBiometricSupported, setIsBiometricSupported] = useState<boolean>(false);
+    const [isBiometricExists, setIsBiometricExists] = useState<boolean>(false);
+    const [isBiometricEnable, setIsBiometricEnable] = useState<boolean>(false);
 
     const [appState, setAppState] = useState<AppStateStatus>(AppState.currentState);
 
     const storeToken = async (token: string) => {
         await SecureStore.setItemAsync('userToken', token);
-      };
+    };
 
-      const getToken = async () => {
+    const getToken = async () => {
         return await SecureStore.getItemAsync('userToken');
-      };
+    };
 
-      
+    useEffect(() => {
+        const checkBiometricSupport = async () => {
+            const isUsingBiometric = await LocalAuthentication.hasHardwareAsync();
+            setIsBiometricSupported(isUsingBiometric);
+        };
+
+        checkBiometricSupport();
+        const checkSavedBiometric = async () => {
+            const savedBiometrics = await LocalAuthentication.isEnrolledAsync();
+            setIsBiometricExists(savedBiometrics);
+        }
+        checkSavedBiometric();
+    }, [])
+
+
+    useEffect(() => {
+        if (isBiometricSupported && isBiometricExists) {
+          setIsBiometricEnable(true);
+        } else {
+          setIsBiometricEnable(false);
+        }
+      }, [isBiometricSupported, isBiometricExists]);;
+
     useEffect(() => {
         checkFirstLogin();
         getPreferredLoginMethod();
@@ -108,28 +141,63 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         const generatedToken = `token_based_on_${credentials.username}`;
         console.log(credentials.password, credentials.username);
 
-        const onlineLoginSuccessful = credentials.password === '123' && credentials.username === 'sega'; 
+        const onlineLoginSuccessful = credentials.password === '123' && credentials.username === 'sega';
         if (onlineLoginSuccessful) {
-          setIsAuthenticated(true);
-          await storeToken(generatedToken);
-          setPreferredLoginMethod(method);
-          resetSessionTimeout();
-        } else {
-          // Attempt offline login
-          const storedToken = await getToken();
-          if (storedToken && storedToken === generatedToken) {
             setIsAuthenticated(true);
+            await storeToken(generatedToken);
+            setPreferredLoginMethod(method);
             resetSessionTimeout();
-          } else {
-            // Offline login failed
-            setIsAuthenticated(false);
-            console.log('Offline login failed');
-          }
+            return true;
+        } else {
+            // Attempt offline login
+            const storedToken = await getToken();
+            if (storedToken && storedToken === generatedToken) {
+                setIsAuthenticated(true);
+                resetSessionTimeout();
+                return true;
+            } else {
+                // Offline login failed
+                setIsAuthenticated(false);
+                console.log('Offline login failed');
+                return false;
+            }
         }
-      };
-      
+    };
+
+    const authenticateBiometric = async () => {
+        if (!isBiometricSupported) {
+            console.log('Biometric authentication not supported');
+            return false;
+        }
+
+        if (!isBiometricExists) {
+            console.log('No Biometrics Found');
+            return false;
+        }
+        setIsBiometricAble(true);
+        const authResult = await LocalAuthentication.authenticateAsync({
+            promptMessage: 'Login with Biometrics',
+            fallbackLabel: 'Enter Password', // iOS only
+            cancelLabel: 'Cancel',
+            disableDeviceFallback: true,
+        });
+
+        if (authResult.success) {
+            console.log('Authenticated using biometrics');
+            setIsBiometricSetUp(true);
+            const token = 'your_generated_token'; // Implement token generation or retrieval as needed
+            await storeToken(token);
+            setIsAuthenticated(true);
+            setPreferredLoginMethod('biometric');
+            return true;
+        } else {
+            console.log('Biometric authentication failed', authResult.error);
+            return false;
+        }
+    };
 
     const logout = async () => {
+        await SecureStore.deleteItemAsync('userToken');
         setIsAuthenticated(false);
     };
 
@@ -144,6 +212,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         isAuthenticated,
         isFirstLogin,
         preferredLoginMethod,
+        authenticateBiometric,
+        isBiometricSetUp,
+        isBiometricAble,
+        isBiometricEnable
     };
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
