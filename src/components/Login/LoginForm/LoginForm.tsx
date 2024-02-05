@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { View, TextInput, Button, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import { Input, Button } from 'react-native-elements';
 import { useAuth } from '../../../context/AuthContext/AuthContext';
-import AppAlert from '../../AppAlert/AppAlert';
+import AppAlert from '../../general/AppAlert/AppAlert';
 
 export default function LoginForm() {
   const [username, setUsername] = useState('');
@@ -9,44 +10,46 @@ export default function LoginForm() {
   const [alertVisible, setAlertVisible] = useState(false);
   const [biometricAlertVisible, setBiometricAlertVisible] = useState(false);
 
-  const { login, isFirstLogin, isAuthenticated } = useAuth();
+  const { login, isFirstLogin } = useAuth();
 
   const hideAlert = () => setAlertVisible(false);
   const hideBiometricAlert = () => setBiometricAlertVisible(false);
 
   const handleLoginPress = async () => {
     const authorized = await login({ username, password }, 'credentials');
-    console.log("authorized: " + authorized)
     if (authorized) {
-      console.log("isFirstLogin: " + isFirstLogin)
       if (isFirstLogin) {
-        // Show biometric setup alert
         setBiometricAlertVisible(true);
       } else {
-        // Proceed with other post-login actions for returning users
+        // Navigate to next screen or show success message
       }
     } else {
-      // Show login failed alert
       setAlertVisible(true);
     }
   };
 
   return (
     <View style={styles.form}>
-      <TextInput
+      <Input
         placeholder="Username"
-        style={styles.input}
         value={username}
         onChangeText={setUsername}
+        containerStyle={styles.input}
+        autoCapitalize="none" // Useful for usernames
       />
-      <TextInput
+      <Input
         placeholder="Password"
         secureTextEntry={true}
-        style={styles.input}
         value={password}
         onChangeText={setPassword}
+        containerStyle={styles.input}
       />
-      <Button title="Login" onPress={handleLoginPress} />
+      <Button
+        title="Login"
+        onPress={handleLoginPress}
+        containerStyle={styles.buttonContainer}
+        buttonStyle={styles.button}
+      />
       <AppAlert
         title="Login Failed"
         message="Your username or password is incorrect."
@@ -71,11 +74,15 @@ export default function LoginForm() {
 const styles = StyleSheet.create({
   form: {
     width: '80%',
+    alignSelf: 'center',
   },
   input: {
-    height: 40,
-    marginBottom: 12,
-    borderWidth: 1,
-    padding: 10,
+    marginBottom: 10,
+  },
+  buttonContainer: {
+    marginTop: 12,
+  },
+  button: {
+    backgroundColor: '#397af8', // Customize button color
   },
 });
