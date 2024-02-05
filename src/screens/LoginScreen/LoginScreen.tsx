@@ -1,17 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Button, StyleSheet, Animated } from 'react-native';
+import { View, Button, StyleSheet, Animated, Text } from 'react-native';
 import LoginForm from '../../components/Login/LoginForm/LoginForm';
 import BiometricLogin from '../../components/Login/BiometricLogin/BiometricLogin';
 import { useAuth } from '../../context/AuthContext/AuthContext';
 
 export default function LoginScreen() {
-  const { isBiometricEnable, isFirstLogin } = useAuth();
+  const { isBiometricEnable, isFirstLogin,isBiometricSetUp, isBiometricAble } = useAuth();
   const [loginMethod, setLoginMethod] = useState<'username' | 'biometric'>('username');
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     // Automatically set login method to biometric if enabled
-    if (isBiometricEnable) {
+    if (isBiometricEnable && !isFirstLogin) {
       setLoginMethod('biometric');
     }
 
@@ -20,10 +20,14 @@ export default function LoginScreen() {
       duration: 500,
       useNativeDriver: true,
     }).start();
-  }, [loginMethod, isBiometricEnable, isFirstLogin]);
+  }, [isBiometricEnable, isFirstLogin]);
 
   return (
     <View style={styles.container}>
+      <Text>isBiometricEnable: {isBiometricEnable ? 'true' : 'false'}</Text>
+      <Text>isFirstLogin: {isFirstLogin ? 'true' : 'false'}</Text>
+      <Text>isBiometricSetUp: {isBiometricSetUp ? 'true' : 'false'}</Text>
+      <Text>isBiometricAble: {isBiometricAble ? 'true' : 'false'}</Text>
       <Animated.View
         style={[
           styles.loginFormContainer,
@@ -32,7 +36,7 @@ export default function LoginScreen() {
         ]}
       >
         {loginMethod === 'username' && <LoginForm />}
-        {loginMethod === 'biometric' && isBiometricEnable && <BiometricLogin />}
+        {loginMethod === 'biometric' && isBiometricEnable && !isFirstLogin && <BiometricLogin />}
       </Animated.View>
 
       <View style={styles.buttonContainer}>
@@ -41,6 +45,7 @@ export default function LoginScreen() {
           <Button title="Biometrics" onPress={() => setLoginMethod('biometric')} />
         )}
       </View>
+
     </View>
   );
 }

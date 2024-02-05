@@ -35,7 +35,7 @@ export default function LoginForm() {
         value={username}
         onChangeText={setUsername}
         containerStyle={styles.input}
-        autoCapitalize="none" // Useful for usernames
+        autoCapitalize="none"
       />
       <Input
         placeholder="Password"
@@ -73,16 +73,27 @@ export default function LoginForm() {
 
 const styles = StyleSheet.create({
   form: {
-    width: '80%',
+    width: '100%',
     alignSelf: 'center',
   },
   input: {
-    marginBottom: 10,
+    marginBottom: 20,
+  },
+  inputContainerStyle: {
+    paddingHorizontal: 10, 
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 5,
+  },
+  inputStyle: {
+    fontSize: 18,
   },
   buttonContainer: {
-    marginTop: 12,
+    marginTop: 20,
   },
   button: {
-    backgroundColor: '#397af8', // Customize button color
+    backgroundColor: '#397af8',
+    paddingVertical: 10,
   },
 });

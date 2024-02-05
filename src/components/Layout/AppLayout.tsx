@@ -5,16 +5,21 @@ import Drawer from 'react-native-drawer';
 import { useAuth } from '../../context/AuthContext/AuthContext';
 import DrawerContent from './DrawerContent';
 
-
 type AppLayoutProps = {
   children: React.ReactNode;
 };
 
 const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
+  const [expandedOption, setExpandedOption] = useState<string | null>(null);
   const { isAuthenticated, logout } = useAuth();
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const toggleDrawer = () => setDrawerOpen(!drawerOpen);
+
+  const closeDrawerAndResetOptions = () => {
+    setDrawerOpen(false);
+    setExpandedOption(null); // Reset expanded options when closing the drawer
+  };
 
   const drawerStyles = {
     drawer: { shadowColor: '#000000', shadowOpacity: 0.8, shadowRadius: 3 },
@@ -43,10 +48,10 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       />
       <Drawer
         open={drawerOpen}
-        content={<DrawerContent onClose={() => setDrawerOpen(false)} />}
+        content={<DrawerContent onClose={() => setDrawerOpen(false)} expandedOption={expandedOption} setExpandedOption={setExpandedOption} drawerOpen={drawerOpen}/>}
         tapToClose={true}
         openDrawerOffset={0.1} // 20% gap on the right side of drawer
-        onClose={() => setDrawerOpen(false)}
+        onClose={closeDrawerAndResetOptions}
         onOpen={() => setDrawerOpen(true)}
         type="overlay" // The drawer slides over the content
         styles={drawerStyles}

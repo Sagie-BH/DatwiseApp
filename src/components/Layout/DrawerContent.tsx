@@ -1,15 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
-import { ListItem, Icon, Text } from 'react-native-elements';
+import { Icon, Text } from 'react-native-elements';
 import { useNavigation } from '@react-navigation/native';
 
 type DrawerContentProps = {
     onClose: () => void;
+    expandedOption: string | null;
+    setExpandedOption: React.Dispatch<React.SetStateAction<string | null>>;
+    drawerOpen: boolean;
 };
 
-const DrawerContent: React.FC<DrawerContentProps> = ({ onClose }) => {
+
+const DrawerContent: React.FC<DrawerContentProps> = ({ onClose, drawerOpen, expandedOption, setExpandedOption }) => {
     const navigation = useNavigation();
-    const [expandedOption, setExpandedOption] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (!drawerOpen) {
+          setExpandedOption(null);
+        }
+      }, [drawerOpen]);
 
     const handlePressOption = (optionTitle: string) => {
         setExpandedOption(expandedOption === optionTitle ? null : optionTitle);
@@ -134,8 +143,7 @@ const styles = StyleSheet.create({
     },
     subOption: {
         backgroundColor: '#f0f0f0',
-        marginLeft: 20,
-        marginRight: 20,
+        marginLeft: 2,
         borderTopWidth: 0,
     },
     subOptionText: {
