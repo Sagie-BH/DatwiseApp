@@ -1,14 +1,14 @@
 import React from 'react';
 import { View, Text, StyleSheet, ImageBackground } from 'react-native';
 
-const HomeScreen = () => {
+const TasksScreen = () => {
     return (
         <ImageBackground
-            source={require('../../../assets/images/homeScreen.webp')}
+            source={require('../../../assets/images/tasksScreen.png')}
             style={styles.container}
         >
             <View style={styles.overlay}>
-                <Text style={styles.text}>Welcome to the Home Screen!</Text>
+                <Text style={styles.text}>Welcome to the Tasks Screen!</Text>
             </View>
         </ImageBackground>
     );
@@ -33,4 +33,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default HomeScreen;
+export default TasksScreen;
