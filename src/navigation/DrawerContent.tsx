@@ -2,27 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { Icon, Text } from 'react-native-elements';
 import { useNavigation } from '@react-navigation/native';
-
-type DrawerContentProps = {
-    onClose: () => void;
-    expandedOption: string | null;
-    setExpandedOption: React.Dispatch<React.SetStateAction<string | null>>;
-    drawerOpen: boolean;
-};
+import { DrawerContentScrollView, DrawerContentComponentProps } from '@react-navigation/drawer';
 
 
-const DrawerContent: React.FC<DrawerContentProps> = ({ onClose, drawerOpen, expandedOption, setExpandedOption }) => {
+const DrawerContent: React.FC<DrawerContentComponentProps> = () => {
     const navigation = useNavigation();
-
-    useEffect(() => {
-        if (!drawerOpen) {
-          setExpandedOption(null);
-        }
-      }, [drawerOpen]);
+    const [expandedOption, setExpandedOption] = useState<string | null>(null);
 
     const handlePressOption = (optionTitle: string) => {
         setExpandedOption(expandedOption === optionTitle ? null : optionTitle);
     };
+
 
     const handlePressIcon = (optionTitle: string, event: any) => {
         event.stopPropagation(); // Prevent TouchableOpacity from triggering navigation
@@ -34,18 +24,16 @@ const DrawerContent: React.FC<DrawerContentProps> = ({ onClose, drawerOpen, expa
     };
 
     const options = [
-        { 
-            title: 'Home', 
-            onPress: () => { 
-                navigation.navigate('Home' as never); 
-                onClose(); 
+        {
+            title: 'Home',
+            onPress: () => {
+                navigation.navigate('Home' as never);
             }
         },
         {
             title: 'HR Screen',
             onPress: () => {
                 navigation.navigate('HRScreen' as never);
-                onClose();
             },
             moreOptions: [
                 { title: 'Create new employee', onPress: () => console.log('Option 1 selected - Create employee task') },
@@ -56,19 +44,14 @@ const DrawerContent: React.FC<DrawerContentProps> = ({ onClose, drawerOpen, expa
             title: 'Tasks Screen',
             onPress: () => {
                 navigation.navigate('TasksScreen' as never);
-                onClose();
             },
             moreOptions: [
                 { title: 'Create new task', onPress: () => console.log('Option 1 selected - Create new task') },
                 { title: 'Show tasks list', onPress: () => console.log('Option 2 selected - Show tasks list') },
             ]
         },
-        { 
-            title: 'Close Drawer', 
-            onPress: onClose 
-        },
-        { 
-            title: 'More Options', 
+        {
+            title: 'More Options',
             onPress: () => handlePressOption('More Options'),
             moreOptions: [
                 { title: 'Option 1', onPress: () => console.log('Option 1 selected') },
@@ -79,43 +62,45 @@ const DrawerContent: React.FC<DrawerContentProps> = ({ onClose, drawerOpen, expa
 
 
     return (
-        <View style={styles.drawerContent}>
-            {options.map((option, index) => (
-                <View key={index}>
-                    <TouchableOpacity
-                        onPress={option.onPress}
-                        style={styles.listItem}
-                    >
-                        <View style={styles.optionRow}>
-                            <Text style={styles.listItemTitle}>{option.title}</Text>
-                            {option.moreOptions && (
-                                <TouchableOpacity 
-                                    onPress={(e) => handlePressIcon(option.title, e)} 
-                                    style={styles.iconContainer}
-                                >
-                                    <Icon 
-                                        name={isOptionExpanded(option.title) ? 'arrow-drop-up' : 'arrow-drop-down'} 
-                                        type="material" 
-                                        color="#000"
-                                    />
-                                </TouchableOpacity>
+        <DrawerContentScrollView>
+            <View style={styles.drawerContent}>
+                {options.map((option, index) => (
+                    <View key={index}>
+                        <TouchableOpacity
+                            onPress={option.onPress}
+                            style={styles.listItem}
+                        >
+                            <View style={styles.optionRow}>
+                                <Text style={styles.listItemTitle}>{option.title}</Text>
+                                {option.moreOptions && (
+                                    <TouchableOpacity
+                                        onPress={(e) => handlePressIcon(option.title, e)}
+                                        style={styles.iconContainer}
+                                    >
+                                        <Icon
+                                            name={isOptionExpanded(option.title) ? 'arrow-drop-up' : 'arrow-drop-down'}
+                                            type="material"
+                                            color="#000"
+                                        />
+                                    </TouchableOpacity>
+                                )}
+                            </View>
+                            {isOptionExpanded(option.title) && option.moreOptions && (
+                                option.moreOptions.map((subOption, subIndex) => (
+                                    <TouchableOpacity
+                                        key={`sub-${subIndex}`}
+                                        onPress={subOption.onPress}
+                                        style={[styles.listItem, styles.subOption]}
+                                    >
+                                        <Text style={styles.subOptionText}>{subOption.title}</Text>
+                                    </TouchableOpacity>
+                                ))
                             )}
-                        </View>
-                        {isOptionExpanded(option.title) && option.moreOptions && (
-                            option.moreOptions.map((subOption, subIndex) => (
-                                <TouchableOpacity
-                                    key={`sub-${subIndex}`}
-                                    onPress={subOption.onPress}
-                                    style={[styles.listItem, styles.subOption]}
-                                >
-                                    <Text style={styles.subOptionText}>{subOption.title}</Text>
-                                </TouchableOpacity>
-                            ))
-                        )}
-                    </TouchableOpacity>
-                </View>
-            ))}
-        </View>
+                        </TouchableOpacity>
+                    </View>
+                ))}
+            </View>
+        </DrawerContentScrollView>
     );
 };
 

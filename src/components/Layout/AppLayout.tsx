@@ -1,31 +1,19 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Header } from 'react-native-elements';
-import Drawer from 'react-native-drawer';
 import { useAuth } from '../../context/AuthContext/AuthContext';
-import DrawerContent from './DrawerContent';
+import { useNavigation } from '@react-navigation/native';
+import { DrawerNavigationProp } from '@react-navigation/drawer';
+import { RootStackParamList } from '../../types/navigationTypes/types';
+
 
 type AppLayoutProps = {
   children: React.ReactNode;
 };
 
 const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
-  const [expandedOption, setExpandedOption] = useState<string | null>(null);
   const { isAuthenticated, logout } = useAuth();
-  const [drawerOpen, setDrawerOpen] = useState(false);
-
-  const toggleDrawer = () => setDrawerOpen(!drawerOpen);
-
-  const closeDrawerAndResetOptions = () => {
-    setDrawerOpen(false);
-    setExpandedOption(null); // Reset expanded options when closing the drawer
-  };
-
-  const drawerStyles = {
-    drawer: { shadowColor: '#000000', shadowOpacity: 0.8, shadowRadius: 3 },
-    main: { paddingLeft: 3 },
-    // More styles can be added here according to your preference
-  };
+  const navigation = useNavigation<DrawerNavigationProp<RootStackParamList>>();
 
   return (
     <View style={styles.container}>
@@ -33,7 +21,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
         leftComponent={isAuthenticated ? {
           icon: 'menu',
           color: '#fff',
-          onPress: toggleDrawer,
+          onPress: () => navigation.openDrawer(),
         } : undefined}
         centerComponent={{ text: 'My App', style: { color: '#fff' } }}
         rightComponent={isAuthenticated ? {
@@ -46,18 +34,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
           justifyContent: 'space-around',
         }}
       />
-      <Drawer
-        open={drawerOpen}
-        content={<DrawerContent onClose={() => setDrawerOpen(false)} expandedOption={expandedOption} setExpandedOption={setExpandedOption} drawerOpen={drawerOpen}/>}
-        tapToClose={true}
-        openDrawerOffset={0.1} // 20% gap on the right side of drawer
-        onClose={closeDrawerAndResetOptions}
-        onOpen={() => setDrawerOpen(true)}
-        type="overlay" // The drawer slides over the content
-        styles={drawerStyles}
-      >
-        <View style={styles.content}>{children}</View>
-      </Drawer>
+      <View style={styles.content}>{children}</View>
     </View>
   );
 };
@@ -68,10 +45,6 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-  },
-  drawerContent: {
-    flex: 1,
-    backgroundColor: '#878f96',
   },
 });
 
